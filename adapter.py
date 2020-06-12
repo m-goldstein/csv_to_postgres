@@ -4,15 +4,15 @@ import os
 commands = (
 """
 CREATE TABLE %s (
-    id INTEGER PRIMARY KEY,
-    timestamp INTEGER,
-    username VARCHAR(255), 
+    id VARCHAR(255) PRIMARY KEY,
+    timestamp VARCHAR(255),
+    username VARCHAR(15), 
     sent_to VARCHAR(255),
     replies INTEGER,
     retweets INTEGER,
     favorites INTEGER,
-    text VARCHAR(255),
-    geo INTEGER,
+    text VARCHAR(280),
+    geo VARCHAR(255),
     mentions VARCHAR(255),
     hashtags VARCHAR(255),
     permalink VARCHAR(255)
@@ -85,15 +85,16 @@ class TwitterDBClient():
 	    try:
 		    if row_id is int:
 			    row_id = str(row_id)
-		    self.cursor.execute(sql, (row_id,))
+		    sql = sql%("'"+str(row_id)+"'")
+		    self.cursor.execute(sql)
 		    self.session.commit()
 	    except:
 		    print("[insert_row_by_id] Error: could not insert row.\n")
+		    print("SQL: %s"%(sql))
 		    self.session.commit()
 		    return None
     
     def populate_row_data(self, table_name=TABLE_NAME, row_id=None, row_data=None):
-
 	    if row_id is None:
 		    print("[populate_row_data] Error: no row id provided.\n")
 		    return None
@@ -105,13 +106,19 @@ class TwitterDBClient():
 			    row_id = str(row_id)
 
 		    sql = """UPDATE %s"""%(table_name)
-		    select_clause = " WHERE id = %s"%(row_id)
+		    select_clause = " WHERE id = '%s';"%(row_id)
 		    key_list = [key for key in row_data.keys()]
 		    for key in key_list:
+			    if key == 'id':
+				    #self.insert_row_by_id(table_name, row_data[key])
+				    continue
+			    if key == 'to':
+				    row_data['sent_to'] = row_data['to']
+				    key = 'sent_to'
 			    sql = "UPDATE %s"%(table_name)
-			    sql += " SET %s = '%s'"%(key, row_data[key])
+			    sql += " SET %s = '%s' "%(key, str(row_data[key]))
 			    sql += select_clause
-			    print(sql)
+			    #print(sql)
 			    try:
 				    self.cursor.execute(sql)
 				    self.session.commit()
@@ -122,10 +129,17 @@ class TwitterDBClient():
 	    except:
 		    print("[populate_row_data] Error: could not insert row data\n")
 		    return None
-def main():
-    client = TwitterDBClient()
-    client.init_session()
-    client.cursor.execute('SELECT version()')
-    print("Connected to Database. Version info:\n\t%s"%(client.cursor.fetchone()))
-    client.create_table("tweet_data",commands)
-main()
+    def insert_row(self, table=TABLE_NAME, row_data=None):
+	    if row_data is None:
+		    print("[insert_row] Error: row_data is none.\n")
+		    return None
+	    try:
+		    row_id = row_data['id']
+		    #self.insert_row_by_id(table, str(row_id))
+		    self.populate_row_data(table, str(row_id), row_data)
+	    except:
+		    print("[insert_row] Error: could not insert row.\n")
+		    self.session.commit()
+		    return None
+
+
