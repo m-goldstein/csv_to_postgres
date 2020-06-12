@@ -153,7 +153,7 @@ class TwitterDBClient():
 		    return None
 	    try:
 		    row_id = row_data['id']
-		    #self.insert_row_by_id(table, str(row_id))
+		    self.insert_row_by_id(table, str(row_id))
 		    self.populate_row_data(table, str(row_id), row_data)
 	    except:
 		    print("[insert_row] Error: could not insert row.\n")

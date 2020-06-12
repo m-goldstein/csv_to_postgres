@@ -10,7 +10,7 @@ csv_list = os.listdir(csv_pwd)
 ################################################
 client = TwitterDBClient()
 client.init_session()
-#client.create_table('tweet_data', commands)
+client.create_table('tweet_data', commands)
 print("Connected to database.\n")
 for e in csv_list:
     entry_count = 0
@@ -32,6 +32,4 @@ for e in csv_list:
 					    pass
 	    except:
 		    continue
-	    #client.insert_row('tweet_data', result_set)
-	    client.insert_row_by_id('tweet_data', result_set['id'])
-	    client.populate_row_data('tweet_data', result_set['id'], result_set)
+	    client.insert_row('tweet_data', result_set)
