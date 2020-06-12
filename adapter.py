@@ -11,7 +11,7 @@ CREATE TABLE %s (
     replies INTEGER,
     retweets INTEGER,
     favorites INTEGER,
-    text VARCHAR(280),
+    text VARCHAR(512),
     geo VARCHAR(255),
     mentions VARCHAR(255),
     hashtags VARCHAR(255),
@@ -49,6 +49,7 @@ class TwitterDBClient():
 		    self.cursor = self.session.cursor()
 	    except:
 		    print("[init_session] Error: could not connect to host %s"%(host))
+    
     def create_table(self, table_name=TABLE_NAME, preparedStmt=commands):
 	    if table_name is None:
 		    print("[create_table] Error: table name not specified.\n")
@@ -63,6 +64,7 @@ class TwitterDBClient():
 	    except:
 		    print("[create_table] Error: table creation failed.\n")
 		    return None
+    
     def delete_table(self, table_name=None):
 	    if table_name is None:
 		    print("[delete_table] Error: no table name provided.\n")
@@ -104,7 +106,6 @@ class TwitterDBClient():
 	    try:
 		    if row_id is int:
 			    row_id = str(row_id)
-
 		    sql = """UPDATE %s"""%(table_name)
 		    select_clause = " WHERE id = '%s';"%(row_id)
 		    key_list = [key for key in row_data.keys()]
@@ -115,6 +116,22 @@ class TwitterDBClient():
 			    if key == 'to':
 				    row_data['sent_to'] = row_data['to']
 				    key = 'sent_to'
+			    if key == 'text':
+				    try:
+					    sql = "UPDATE %s"%(table_name)
+					    sql += " SET %s = \'%s\'"%(key, str(row_data[key]))
+					    sql += select_clause
+					    try:
+						    self.cursor.execute(sql)
+						    self.session.commit()
+						    continue
+					    except:
+						    print("Error: malformed text.")
+						    print("\t%s"%(row_data[key]))
+						    self.session.commit()
+						    continue
+				    except:
+					    pass
 			    sql = "UPDATE %s"%(table_name)
 			    sql += " SET %s = '%s' "%(key, str(row_data[key]))
 			    sql += select_clause
@@ -129,6 +146,7 @@ class TwitterDBClient():
 	    except:
 		    print("[populate_row_data] Error: could not insert row data\n")
 		    return None
+
     def insert_row(self, table=TABLE_NAME, row_data=None):
 	    if row_data is None:
 		    print("[insert_row] Error: row_data is none.\n")
@@ -141,5 +159,3 @@ class TwitterDBClient():
 		    print("[insert_row] Error: could not insert row.\n")
 		    self.session.commit()
 		    return None
-
-

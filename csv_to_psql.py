@@ -10,7 +10,7 @@ csv_list = os.listdir(csv_pwd)
 ################################################
 client = TwitterDBClient()
 client.init_session()
-client.create_table('tweet_data', commands)
+#client.create_table('tweet_data', commands)
 print("Connected to database.\n")
 for e in csv_list:
     entry_count = 0
@@ -23,7 +23,10 @@ for e in csv_list:
 			    keys = [key for key in row.keys()]
 			    for key in keys:
 				    try:
-					    result_set[key] = row[key]
+					    string          = row[key]
+					    string          = string.replace('"','')
+					    string          = string.replace("'",'')
+					    result_set[key] = string
 				    except:
 					    print("Error: cannot parse row\n.")
 					    pass
